@@ -1,0 +1,15 @@
+# Python caches
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environment and Dependencies
+.env
+venv/
+.venv/
+env/
+
+# IDE and OS
+.vscode/
+.idea/
+.DS_Store
