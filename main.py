@@ -51,11 +51,29 @@ def search(query:str):
         for doc_emb in doc_embeddings
     ]
     best_match_index= scores.index(max(scores))
+    best_match = documents[best_match_index]
+    explanation= explain_result(query,best_match)
     return {
         "query": query,
         "best_match": documents[best_match_index],
-        "score": float(max(scores))
+        "score": float(max(scores)),
+        "explanation": explanation
     }
+
+def explain_result(query:str,best_match:str):
+    prompt = f"""
+    User query: "{query}"
+    Retrieved result: "{best_match}"
+
+    Explain clearly why this result is relevant to the query.
+    Keep it simple and concise
+    
+"""
+    response= client.models.generate_content(
+        model="gemini-3.1-flash-lite-preview",
+        contents=prompt
+    )
+    return response.text
 
 # --------------- API Schema ------------
 
