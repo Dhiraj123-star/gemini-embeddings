@@ -1,7 +1,11 @@
 import os
+from typing import List
+import numpy as np
+from fastapi import FastAPI
+from pydantic import BaseModel
 from google import genai
 from dotenv import load_dotenv
-import numpy as np
+
 
 # Load environment variables
 load_dotenv()
@@ -11,6 +15,9 @@ client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
 MODEL = "gemini-embedding-2-preview"
 
+app = FastAPI(title="Gemini Semantic Search API")
+
+# ------------ Core Logic -----------------
 
 def get_embedding(text: str):
     response = client.models.embed_content(
@@ -33,7 +40,7 @@ documents = [
     "Kafka is used for streaming"
 ]
 
-# Pre-computing embeddings
+# Pre-computing embeddings at startup
 doc_embeddings = [get_embedding(doc) for doc in documents]
 
 def search(query:str):
@@ -44,11 +51,23 @@ def search(query:str):
         for doc_emb in doc_embeddings
     ]
     best_match_index= scores.index(max(scores))
-    return documents[best_match_index]
+    return {
+        "query": query,
+        "best_match": documents[best_match_index],
+        "score": float(max(scores))
+    }
 
-if __name__ == "__main__":
+# --------------- API Schema ------------
 
+class QueryRequest(BaseModel):
+    query:str
 
-    query = input("Enter your query: \n")
-    result= search(query)
-    print("Best Match: ",result)
+# ------------- Routes -----------
+
+@app.get("/")
+def root():
+    return {"message": "Gemini Semantic Search API is running!!"}
+
+@app.post("/search")
+def semantic_search(request: QueryRequest):
+    return search(request.query)
