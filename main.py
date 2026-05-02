@@ -5,6 +5,7 @@ from pydantic import BaseModel
 from google import genai
 from dotenv import load_dotenv
 import chromadb
+from chromadb.config import Settings
 
 
 # Load environment variables
@@ -19,7 +20,10 @@ MODEL = "gemini-embedding-2"
 app = FastAPI(title="Gemini + Chroma Semantic Search API")
 
 # ---------- Chroma Setup --------------
-chroma_client = chromadb.Client()
+chroma_client = chromadb.Client(
+    Settings(persist_directory="./chroma_db")
+)
+
 collection = chroma_client.get_or_create_collection(name="documents")
 
 
