@@ -13,7 +13,7 @@ load_dotenv()
 # Initialize client
 client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
-MODEL = "gemini-embedding-2-preview"
+MODEL = "gemini-embedding-2"
 
 app = FastAPI(title="Gemini Semantic Search API")
 
