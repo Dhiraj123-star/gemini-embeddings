@@ -1,6 +1,6 @@
 import os
 import numpy as np
-from fastapi import FastAPI,UploadFile,File
+from fastapi import FastAPI,UploadFile,File,Query
 from pypdf import PdfReader
 import uuid
 from pydantic import BaseModel
@@ -38,16 +38,35 @@ def get_embedding(text: str):
     )
     return response.embeddings[0].values
 
+# ------ Helper function -----------
+def normalize_filename(filename:str) ->str:
+    return filename.strip().lower()
 
-def search(query:str,top_k:int=3):
+
+
+def search(query:str,top_k:int=3,source:str =None):
     query_embedding = get_embedding(query)
 
+    query_params= {
+        "query_embeddings": [query_embedding],
+        "n_results": top_k
+    }
+
+    if source:
+        query_params["where"]= {"source":normalize_filename(source)}
+
     results = collection.query(
-        query_embeddings = [query_embedding],
-        n_results = top_k
+       **query_params
     )
 
-    docs= results["documents"][0]
+    docs= results.get("documents",[[]])[0]
+    
+    if not docs:
+        return {
+            "query": query,
+            "answer": "No relevant results found.",
+            "context":[]
+        }
     
     # Combine context
     context = "\n\n".join(docs)
@@ -101,7 +120,7 @@ def chunk_text(text:str, chunk_size: int = 500,overlap:int = 50):
     return chunks
 
 # --------- Store PDF chunks in Chroma ---------
-def store_pdf_chunks(chunks):
+def store_pdf_chunks(chunks,filename:str):
     embeddings= [get_embedding(chunk) for chunk in chunks]
 
     ids= [str(uuid.uuid4()) for _ in chunks]
@@ -110,7 +129,7 @@ def store_pdf_chunks(chunks):
         documents=chunks,
         embeddings=embeddings,
         ids=ids,
-        metadatas= [{"source":"uploaded_pdf"} for _ in chunks]
+        metadatas= [{"source": filename} for _ in chunks]  # dynamic filename
     )
 
 
@@ -120,6 +139,7 @@ def store_pdf_chunks(chunks):
 class QueryRequest(BaseModel):
     query:str
     top_k:int =3 
+    source: str| None = None # filter by filename
 # ------------- Routes -----------
 
 @app.get("/")
@@ -129,17 +149,47 @@ def root():
 
 @app.post("/upload")
 async def upload_pdf(file: UploadFile = File(...)):
+
+    normalized_name = normalize_filename(file.filename)
+
     text = extract_text_from_pdf(file)
 
     chunks = chunk_text(text)
 
-    store_pdf_chunks(chunks)
+    store_pdf_chunks(chunks,normalized_name) # pass filename
 
     return {
         "message": "PDF processed successfully",
+        "file": normalized_name,
         "chunks_stored":len(chunks)
     }
 
 @app.post("/ask")
 def ask_question(request: QueryRequest):
-    return search(request.query,request.top_k)
+    return search(request.query,request.top_k,request.source)
+
+@app.get("/documents")
+def list_documents():
+    results = collection.get(include=["metadatas"])
+
+    sources = set()
+
+    for meta in results.get("metadatas",[]):
+        if meta and "source" in meta:
+            sources.add(meta["source"])
+
+    return {
+        "documents":list(sources)
+    }
+
+@app.delete("/documents")
+def delete_document(source: str = Query(...)):
+    normalized_source = normalize_filename(source)
+
+    collection.delete(
+        where= {"source":normalized_source}
+    )
+
+    return {
+        "message": f"Document ' {normalized_source}' deleted succesfullly"
+    }
