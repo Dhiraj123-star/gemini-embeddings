@@ -1,6 +1,8 @@
 import os
 import numpy as np
-from fastapi import FastAPI
+from fastapi import FastAPI,UploadFile,File
+from pypdf import PdfReader
+import uuid
 from pydantic import BaseModel
 from google import genai
 from dotenv import load_dotenv
@@ -36,32 +38,6 @@ def get_embedding(text: str):
     )
     return response.embeddings[0].values
 
-documents = [
-    "FastAPI is a backend framework for building APIs.",
-    "Django is a backend web framework.",
-    "Redis is a caching system used in backend architecture.",
-    "Kafka is a streaming platform used in backend systems."
-]
-
-
-# Store documents in Chroma 
-
-def store_documents():
-    existing= collection.count()
-
-    if existing==0:
-        embeddings = [get_embedding(doc) for doc in documents]
-
-        collection.add(
-            documents=documents,
-            embeddings = embeddings,
-            ids= [str(i) for i in range(len(documents))]
-        )
-
-store_documents()
-
-# Pre-computing embeddings at startup
-doc_embeddings = [get_embedding(doc) for doc in documents]
 
 def search(query:str,top_k:int=3):
     query_embedding = get_embedding(query)
@@ -72,31 +48,30 @@ def search(query:str,top_k:int=3):
     )
 
     docs= results["documents"][0]
-    scores = results["distances"][0]
+    
+    # Combine context
+    context = "\n\n".join(docs)
 
-    final_results=[]
-
-    for doc, score in zip(docs,scores):
-        explanation=explain_result(query,doc)
-        final_results.append({
-            "document":doc,
-            "score":float(1-score), # convert into similarity
-            "explanation":explanation
-        })
+    answer = generate_answer(query,context)
 
     return {
-        "query":query,
-        "results":final_results
+        "query": query,
+        "answer": answer,
+        "context" : docs
     }
 
-# --------- Explanation ---------
-def explain_result(query:str,best_result:str ):
-    prompt = f"""
-    User query:  "{query}"
-    Retrieved result: "{best_result}"
 
-    Explain clearly why this result is relevant to the query.
-    Keep it simple and concise.
+
+# --------- Explanation ---------
+def generate_answer(query:str,context:str ):
+    prompt = f"""
+    Answer the question based on the context below.
+    Context:
+    {context}
+    Question:
+    {query}
+
+    Answer clearly and concisely. 
 
     """
     response = client.models.generate_content (
@@ -104,6 +79,40 @@ def explain_result(query:str,best_result:str ):
         contents=prompt
     )
     return response.text
+
+# ------- PDF text extraction ---------
+def extract_text_from_pdf(file: UploadFile):
+    reader = PdfReader(file.file)
+    text =""
+    for page in reader.pages:
+        text += page.extract_text() or ""
+
+    return text
+
+def chunk_text(text:str, chunk_size: int = 500,overlap:int = 50):
+    chunks = []
+    start=0
+
+    while start < len(text):
+        end = start + chunk_size
+        chunks.append(text[start:end])
+        start += chunk_size - overlap
+    
+    return chunks
+
+# --------- Store PDF chunks in Chroma ---------
+def store_pdf_chunks(chunks):
+    embeddings= [get_embedding(chunk) for chunk in chunks]
+
+    ids= [str(uuid.uuid4()) for _ in chunks]
+
+    collection.add(
+        documents=chunks,
+        embeddings=embeddings,
+        ids=ids,
+        metadatas= [{"source":"uploaded_pdf"} for _ in chunks]
+    )
+
 
 
 # --------------- API Schema ------------
@@ -117,6 +126,20 @@ class QueryRequest(BaseModel):
 def root():
     return {"message": "Gemini + Chroma Semantic Search API running!!"}
 
-@app.post("/search")
-def semantic_search(request: QueryRequest):
+
+@app.post("/upload")
+async def upload_pdf(file: UploadFile = File(...)):
+    text = extract_text_from_pdf(file)
+
+    chunks = chunk_text(text)
+
+    store_pdf_chunks(chunks)
+
+    return {
+        "message": "PDF processed successfully",
+        "chunks_stored":len(chunks)
+    }
+
+@app.post("/ask")
+def ask_question(request: QueryRequest):
     return search(request.query,request.top_k)
