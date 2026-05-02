@@ -1,6 +1,7 @@
+
 # 🚀 Gemini Embeddings Semantic Search API (FastAPI)
 
-A minimal project demonstrating how to use **Google Gemini Embeddings (`gemini-embedding-2-preview`)** to build a simple **semantic search system**, enhanced with **AI-generated explanations using Gemini**.
+A minimal project demonstrating how to use **Google Gemini Embeddings (`gemini-embedding-2-preview`)** to build a **semantic search system**, enhanced with **AI-generated explanations using Gemini** and **Top-K result retrieval**.
 
 ---
 
@@ -8,8 +9,8 @@ A minimal project demonstrating how to use **Google Gemini Embeddings (`gemini-e
 
 - Convert text into vector embeddings using Gemini
 - Perform semantic similarity using cosine similarity
-- Retrieve the most relevant document based on meaning (not keywords)
-- Generate AI-powered explanation for the retrieved result
+- Retrieve **Top-K most relevant documents**
+- Generate AI-powered explanations for each result
 - Expose functionality via FastAPI REST API
 - Lightweight and easy to understand implementation
 
@@ -61,7 +62,7 @@ uvicorn main:app --reload
 GET /
 ```
 
-### Semantic Search
+### Semantic Search (Top-K)
 
 ```bash
 POST /search
@@ -71,7 +72,8 @@ POST /search
 
 ```json
 {
-  "query": "which framework is best for APIs?"
+  "query": "best backend framework",
+  "top_k": 3
 }
 ```
 
@@ -79,10 +81,24 @@ POST /search
 
 ```json
 {
-  "query": "which framework is best for APIs?",
-  "best_match": "FastAPI is great for APIs.",
-  "score": 0.72,
-  "explanation": "FastAPI is specifically designed for building APIs efficiently, making it highly relevant to the user's query."
+  "query": "best backend framework",
+  "results": [
+    {
+      "document": "FastAPI is a backend framework for building APIs.",
+      "score": 0.78,
+      "explanation": "FastAPI is designed specifically for building APIs, making it highly relevant."
+    },
+    {
+      "document": "Django is a backend web framework.",
+      "score": 0.75,
+      "explanation": "Django is a full-featured backend framework suitable for web applications."
+    },
+    {
+      "document": "Redis is a caching system used in backend architecture.",
+      "score": 0.55,
+      "explanation": "Redis supports backend systems by improving performance through caching."
+    }
+  ]
 }
 ```
 
@@ -93,14 +109,14 @@ POST /search
 * Documents are converted into embeddings using Gemini
 * User query is converted into an embedding
 * Cosine similarity is calculated between query and documents
-* Best matching document is selected
-* Gemini generates a natural language explanation for the result
+* Top-K relevant documents are selected based on similarity
+* Gemini generates explanations for each result
 
 ---
 
 ## 🔮 Future Improvements
 
-* Add top-k semantic search results
+* Add hybrid search (keyword + semantic)
 * Store embeddings in vector databases (Qdrant, pgvector)
 * Add caching (Redis) for embeddings
 * Build full RAG pipeline (context + answer generation)
@@ -112,4 +128,4 @@ POST /search
 
 MIT License
 
-
+````
