@@ -34,30 +34,43 @@ def cosine_similarity(vec1, vec2):
 
 
 documents = [
-    "FastAPI is great for APIs.",
-    "Django is a full-stack framework",
-    "Redis is used for caching.",
-    "Kafka is used for streaming"
+    "FastAPI is a backend framework for building APIs.",
+    "Django is a backend web framework.",
+    "Redis is a caching system used in backend architecture.",
+    "Kafka is a streaming platform used in backend systems."
 ]
 
 # Pre-computing embeddings at startup
 doc_embeddings = [get_embedding(doc) for doc in documents]
 
-def search(query:str):
+def search(query:str,top_k:int=3):
     query_emb = get_embedding(query)
 
     scores = [
         cosine_similarity(query_emb,doc_emb)
         for doc_emb in doc_embeddings
     ]
-    best_match_index= scores.index(max(scores))
-    best_match = documents[best_match_index]
-    explanation= explain_result(query,best_match)
+    # Get top-k indices sorted by score (descending)
+    top_indices= sorted (
+        range(len(scores)),
+        key= lambda i:scores[i],
+        reverse=True
+    )[:top_k]
+    
+    results=[]
+
+    for idx in top_indices:
+        best_match = documents[idx]
+        explanation= explain_result(query,best_match)
+
+        results.append({
+            "document":best_match,
+            "score": float(scores[idx]),
+            "explanation":explanation
+        })
     return {
-        "query": query,
-        "best_match": documents[best_match_index],
-        "score": float(max(scores)),
-        "explanation": explanation
+        "query":query,
+        "results":results
     }
 
 def explain_result(query:str,best_match:str):
@@ -79,7 +92,7 @@ def explain_result(query:str,best_match:str):
 
 class QueryRequest(BaseModel):
     query:str
-
+    top_k:int =3 
 # ------------- Routes -----------
 
 @app.get("/")
@@ -88,4 +101,4 @@ def root():
 
 @app.post("/search")
 def semantic_search(request: QueryRequest):
-    return search(request.query)
+    return search(request.query,request.top_k)
