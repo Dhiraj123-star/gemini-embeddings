@@ -1,10 +1,10 @@
 import os
-from typing import List
 import numpy as np
 from fastapi import FastAPI
 from pydantic import BaseModel
 from google import genai
 from dotenv import load_dotenv
+import chromadb
 
 
 # Load environment variables
@@ -15,7 +15,13 @@ client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
 MODEL = "gemini-embedding-2"
 
-app = FastAPI(title="Gemini Semantic Search API")
+# FastAPI app
+app = FastAPI(title="Gemini + Chroma Semantic Search API")
+
+# ---------- Chroma Setup --------------
+chroma_client = chromadb.Client()
+collection = chroma_client.get_or_create_collection(name="documents")
+
 
 # ------------ Core Logic -----------------
 
@@ -26,13 +32,6 @@ def get_embedding(text: str):
     )
     return response.embeddings[0].values
 
-
-def cosine_similarity(vec1, vec2):
-    vec1 = np.array(vec1)
-    vec2 = np.array(vec2)
-    return np.dot(vec1, vec2) / (np.linalg.norm(vec1) * np.linalg.norm(vec2))
-
-
 documents = [
     "FastAPI is a backend framework for building APIs.",
     "Django is a backend web framework.",
@@ -40,53 +39,68 @@ documents = [
     "Kafka is a streaming platform used in backend systems."
 ]
 
+
+# Store documents in Chroma 
+
+def store_documents():
+    existing= collection.count()
+
+    if existing==0:
+        embeddings = [get_embedding(doc) for doc in documents]
+
+        collection.add(
+            documents=documents,
+            embeddings = embeddings,
+            ids= [str(i) for i in range(len(documents))]
+        )
+
+store_documents()
+
 # Pre-computing embeddings at startup
 doc_embeddings = [get_embedding(doc) for doc in documents]
 
 def search(query:str,top_k:int=3):
-    query_emb = get_embedding(query)
+    query_embedding = get_embedding(query)
 
-    scores = [
-        cosine_similarity(query_emb,doc_emb)
-        for doc_emb in doc_embeddings
-    ]
-    # Get top-k indices sorted by score (descending)
-    top_indices= sorted (
-        range(len(scores)),
-        key= lambda i:scores[i],
-        reverse=True
-    )[:top_k]
-    
-    results=[]
+    results = collection.query(
+        query_embeddings = [query_embedding],
+        n_results = top_k
+    )
 
-    for idx in top_indices:
-        best_match = documents[idx]
-        explanation= explain_result(query,best_match)
+    docs= results["documents"][0]
+    scores = results["distances"][0]
 
-        results.append({
-            "document":best_match,
-            "score": float(scores[idx]),
+    final_results=[]
+
+    for doc, score in zip(docs,scores):
+        explanation=explain_result(query,doc)
+        final_results.append({
+            "document":doc,
+            "score":float(1-score), # convert into similarity
             "explanation":explanation
         })
+
     return {
         "query":query,
-        "results":results
+        "results":final_results
     }
 
-def explain_result(query:str,best_match:str):
+# --------- Explanation ---------
+def explain_result(query:str,best_result:str ):
     prompt = f"""
-    User query: "{query}"
-    Retrieved result: "{best_match}"
+    User query:  "{query}"
+    Retrieved result: "{best_result}"
 
     Explain clearly why this result is relevant to the query.
-    Keep it simple and concise
-    
-"""
-    response= client.models.generate_content(
+    Keep it simple and concise.
+
+    """
+    response = client.models.generate_content (
         model="gemini-3.1-flash-lite-preview",
         contents=prompt
     )
     return response.text
+
 
 # --------------- API Schema ------------
 
@@ -97,7 +111,7 @@ class QueryRequest(BaseModel):
 
 @app.get("/")
 def root():
-    return {"message": "Gemini Semantic Search API is running!!"}
+    return {"message": "Gemini + Chroma Semantic Search API running!!"}
 
 @app.post("/search")
 def semantic_search(request: QueryRequest):
