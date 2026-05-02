@@ -1,7 +1,6 @@
+# 🚀 Gemini Embeddings Semantic Search API (FastAPI)
 
-# 🚀 Gemini Embeddings Semantic Search (Python)
-
-A minimal project demonstrating how to use **Google Gemini Embeddings (`gemini-embedding-2-preview`)** to build a simple **semantic search system**.
+A minimal project demonstrating how to use **Google Gemini Embeddings (`gemini-embedding-2-preview`)** to build a simple **semantic search system**, enhanced with **AI-generated explanations using Gemini**.
 
 ---
 
@@ -10,6 +9,8 @@ A minimal project demonstrating how to use **Google Gemini Embeddings (`gemini-e
 - Convert text into vector embeddings using Gemini
 - Perform semantic similarity using cosine similarity
 - Retrieve the most relevant document based on meaning (not keywords)
+- Generate AI-powered explanation for the retrieved result
+- Expose functionality via FastAPI REST API
 - Lightweight and easy to understand implementation
 
 ---
@@ -17,6 +18,7 @@ A minimal project demonstrating how to use **Google Gemini Embeddings (`gemini-e
 ## 🛠️ Tech Stack
 
 - Python
+- FastAPI
 - google-genai (Gemini SDK)
 - NumPy
 - python-dotenv
@@ -28,7 +30,7 @@ A minimal project demonstrating how to use **Google Gemini Embeddings (`gemini-e
 ### Install dependencies
 
 ```bash
-pip install -U google-genai numpy python-dotenv
+pip install -U google-genai numpy python-dotenv fastapi uvicorn
 ````
 
 ---
@@ -43,40 +45,66 @@ GEMINI_API_KEY=your_api_key_here
 
 ---
 
-## ▶️ Run the Project
+## ▶️ Run the API
 
 ```bash
-python main.py
+uvicorn main:app --reload
 ```
 
 ---
 
-## 💡 Example
+## 🌐 API Endpoints
+
+### Health Check
 
 ```bash
-Enter your query:
-fastapi good for?
+GET /
+```
 
-Best Match: FastAPI is great for APIs.
+### Semantic Search
+
+```bash
+POST /search
+```
+
+#### Request Body
+
+```json
+{
+  "query": "which framework is best for APIs?"
+}
+```
+
+#### Example Response
+
+```json
+{
+  "query": "which framework is best for APIs?",
+  "best_match": "FastAPI is great for APIs.",
+  "score": 0.72,
+  "explanation": "FastAPI is specifically designed for building APIs efficiently, making it highly relevant to the user's query."
+}
 ```
 
 ---
 
 ## 🧠 How It Works
 
-* Documents are converted into embeddings
-* Query is converted into an embedding
+* Documents are converted into embeddings using Gemini
+* User query is converted into an embedding
 * Cosine similarity is calculated between query and documents
-* The most similar document is returned
+* Best matching document is selected
+* Gemini generates a natural language explanation for the result
 
 ---
 
 ## 🔮 Future Improvements
 
-* Add FastAPI API layer
+* Add top-k semantic search results
 * Store embeddings in vector databases (Qdrant, pgvector)
-* Support dynamic document input
-* Return top-k results instead of a single match
+* Add caching (Redis) for embeddings
+* Build full RAG pipeline (context + answer generation)
+* Add authentication & rate limiting
 
 ---
 
