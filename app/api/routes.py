@@ -7,9 +7,6 @@ from app.core.chroma import collection
 router = APIRouter()
 
 
-@router.get("/")
-def home():
-    return {"message": "Gemini RAG API running!"}
 
 @router.post("/upload")
 async def upload_pdf(file: UploadFile = File(...)):
