@@ -1,44 +1,48 @@
+# 🚀 Gemini RAG API (FastAPI + Chroma + PDF QA)
 
-# 🚀 Gemini Embeddings Semantic Search API (FastAPI)
+A minimal yet **production-style RAG (Retrieval-Augmented Generation) system** using **Google Gemini Embeddings (`gemini-embedding-2-preview`)**, **ChromaDB**, and **FastAPI**.
 
-A minimal project demonstrating how to use **Google Gemini Embeddings (`gemini-embedding-2-preview`)** to build a **semantic search system**, enhanced with **AI-generated explanations using Gemini** and **Top-K result retrieval**.
+This project allows users to **upload PDF documents and ask questions**, with answers generated using relevant context retrieved from stored embeddings.
 
 ---
 
 ## 📌 Features
 
-- Convert text into vector embeddings using Gemini
-- Perform semantic similarity using cosine similarity
-- Retrieve **Top-K most relevant documents**
-- Generate AI-powered explanations for each result
-- Expose functionality via FastAPI REST API
-- Lightweight and easy to understand implementation
+* 📄 Upload PDF documents and extract text
+* ✂️ Chunk documents for better semantic retrieval
+* 🧠 Generate embeddings using Gemini
+* 🗄️ Store embeddings in Chroma (persistent vector DB)
+* 🔍 Semantic search with **Top-K retrieval**
+* 🤖 Generate contextual answers using Gemini (RAG)
+* 📂 Multi-document support with metadata filtering
+* 📋 List uploaded documents
+* ❌ Delete specific documents
+* ⚡ FastAPI-based REST API
 
 ---
 
 ## 🛠️ Tech Stack
 
-- Python
-- FastAPI
-- google-genai (Gemini SDK)
-- NumPy
-- python-dotenv
+* Python
+* FastAPI
+* Google Gemini (Embeddings + LLM)
+* ChromaDB (Vector Database)
+* PyPDF (PDF parsing)
+* python-dotenv
 
 ---
 
 ## 📦 Installation
 
-### Install dependencies
-
 ```bash
-pip install -U google-genai numpy python-dotenv fastapi uvicorn
-````
+pip install -U google-genai fastapi uvicorn chromadb pypdf python-dotenv
+```
 
 ---
 
 ## 🔐 Environment Setup
 
-Create a `.env` file in the project root:
+Create a `.env` file:
 
 ```env
 GEMINI_API_KEY=your_api_key_here
@@ -49,56 +53,104 @@ GEMINI_API_KEY=your_api_key_here
 ## ▶️ Run the API
 
 ```bash
-uvicorn main:app --reload
+uvicorn app.main:app --reload
 ```
 
 ---
 
 ## 🌐 API Endpoints
 
-### Health Check
+---
 
-```bash
+### ✅ Health Check
+
+```http
 GET /
 ```
 
-### Semantic Search (Top-K)
+---
 
-```bash
-POST /search
+### 📤 Upload PDF
+
+```http
+POST /upload
 ```
 
-#### Request Body
+Upload a PDF file.
+
+#### Response
 
 ```json
 {
-  "query": "best backend framework",
-  "top_k": 3
+  "message": "PDF processed successfully",
+  "file": "docker training.pdf",
+  "chunks_stored": 6
 }
 ```
 
-#### Example Response
+---
+
+### ❓ Ask Question (RAG)
+
+```http
+POST /ask
+```
+
+#### Request
 
 ```json
 {
-  "query": "best backend framework",
-  "results": [
-    {
-      "document": "FastAPI is a backend framework for building APIs.",
-      "score": 0.78,
-      "explanation": "FastAPI is designed specifically for building APIs, making it highly relevant."
-    },
-    {
-      "document": "Django is a backend web framework.",
-      "score": 0.75,
-      "explanation": "Django is a full-featured backend framework suitable for web applications."
-    },
-    {
-      "document": "Redis is a caching system used in backend architecture.",
-      "score": 0.55,
-      "explanation": "Redis supports backend systems by improving performance through caching."
-    }
+  "query": "What is Docker?",
+  "top_k": 3,
+  "source": "docker training.pdf"
+}
+```
+
+#### Response
+
+```json
+{
+  "query": "What is Docker?",
+  "answer": "Docker is a containerization platform...",
+  "context": [
+    "Docker allows applications to run in containers...",
+    "Containers are lightweight and portable..."
   ]
+}
+```
+
+---
+
+### 📂 List Documents
+
+```http
+GET /documents
+```
+
+#### Response
+
+```json
+{
+  "documents": [
+    "docker training.pdf",
+    "kubernetes guide.pdf"
+  ]
+}
+```
+
+---
+
+### ❌ Delete Document
+
+```http
+DELETE /documents?source=docker training.pdf
+```
+
+#### Response
+
+```json
+{
+  "message": "docker training.pdf deleted"
 }
 ```
 
@@ -106,21 +158,31 @@ POST /search
 
 ## 🧠 How It Works
 
-* Documents are converted into embeddings using Gemini
-* User query is converted into an embedding
-* Cosine similarity is calculated between query and documents
-* Top-K relevant documents are selected based on similarity
-* Gemini generates explanations for each result
+```text
+PDF → Text Extraction → Chunking → Embeddings (Gemini)
+   → Store in Chroma → Query Embedding → Similarity Search
+   → Context Retrieval → Gemini → Final Answer
+```
+
+---
+
+## 🔥 Key Concepts
+
+* **Embeddings** → Convert text into vectors
+* **Vector Search** → Find similar content
+* **RAG** → Combine retrieval + LLM generation
+* **Metadata Filtering** → Query specific documents
 
 ---
 
 ## 🔮 Future Improvements
 
-* Add hybrid search (keyword + semantic)
-* Store embeddings in vector databases (Qdrant, pgvector)
-* Add caching (Redis) for embeddings
-* Build full RAG pipeline (context + answer generation)
-* Add authentication & rate limiting
+* Add streaming responses (real-time answers)
+* Add hybrid search (BM25 + embeddings)
+* Add user authentication (multi-tenant system)
+* Add document versioning
+* Add Redis caching for embeddings
+* Add UI (Streamlit / React)
 
 ---
 
@@ -128,4 +190,4 @@ POST /search
 
 MIT License
 
-````
+---
