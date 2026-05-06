@@ -3,6 +3,7 @@ from google import genai
 from app.core.config import GEMINI_API_KEY, LLM_MODEL
 from app.core.chroma import collection
 from app.services.embedding_service import get_embedding
+from typing import Generator
 
 client = genai.Client(api_key=GEMINI_API_KEY)
 
@@ -23,7 +24,7 @@ def store_pdf_chunks(chunks, filename):
     )
 
 
-def generate_answer(query, context):
+def generate_answer_stream(query:str, context:str) -> Generator[str,None,None]:
     prompt = f"""
     Context:
     {context}
@@ -34,15 +35,17 @@ def generate_answer(query, context):
     Answer clearly and concisely.
     """
 
-    response = client.models.generate_content(
+    stream = client.models.generate_content_stream(
         model=LLM_MODEL,
         contents=prompt
     )
 
-    return response.text
+    for chunk in stream:
+        if chunk.text:
+            yield chunk.text
 
 
-def search(query, top_k=3, source=None):
+def search_stream(query, top_k=3, source=None):
     query_emb = get_embedding(query)
 
     params = {
@@ -58,12 +61,10 @@ def search(query, top_k=3, source=None):
     docs = results.get("documents", [[]])[0]
 
     if not docs:
-        return {"query": query, "answer": "No results found", "context": []}
+        def empty_stream():
+            yield "No results found"
+        return empty_stream()
 
     context = "\n\n".join(docs)
 
-    return {
-        "query": query,
-        "answer": generate_answer(query, context),
-        "context": docs
-    }
+    return generate_answer_stream(query,context)
