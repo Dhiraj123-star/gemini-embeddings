@@ -1,6 +1,7 @@
 from fastapi import APIRouter, UploadFile, File, Query
+from fastapi.responses import StreamingResponse
 from app.services.pdf_service import extract_text_from_pdf, chunk_text
-from app.services.rag_service import store_pdf_chunks, search, normalize_filename
+from app.services.rag_service import store_pdf_chunks, search_stream, normalize_filename
 from app.schemas.request import QueryRequest
 from app.core.chroma import collection
 
@@ -20,10 +21,16 @@ async def upload_pdf(file: UploadFile = File(...)):
     return {"file": filename, "chunks": len(chunks)}
 
 
-@router.post("/ask")
+@router.post("/ask-stream")
 def ask(request: QueryRequest):
-    return search(request.query, request.top_k, request.source)
+    
+    generator = search_stream(
+        request.query,
+        request.top_k,
+        request.source
+    )
 
+    return StreamingResponse(generator, media_type="text/event-stream")
 
 @router.get("/documents")
 def list_docs():
