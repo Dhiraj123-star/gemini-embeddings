@@ -1,8 +1,8 @@
-# 🚀 Gemini RAG API (FastAPI + Chroma + PDF QA)
+# 🚀 Gemini RAG API (FastAPI + Chroma + PDF QA + Streaming UI)
 
 A minimal yet **production-style RAG (Retrieval-Augmented Generation) system** using **Google Gemini Embeddings (`gemini-embedding-2-preview`)**, **ChromaDB**, and **FastAPI**.
 
-This project allows users to **upload PDF documents and ask questions**, with answers generated using relevant context retrieved from stored embeddings.
+This project allows users to **upload PDF documents and ask questions via a chat UI**, with **real-time streaming responses** generated using relevant context retrieved from stored embeddings.
 
 ---
 
@@ -14,10 +14,12 @@ This project allows users to **upload PDF documents and ask questions**, with an
 * 🗄️ Store embeddings in Chroma (persistent vector DB)
 * 🔍 Semantic search with **Top-K retrieval**
 * 🤖 Generate contextual answers using Gemini (RAG)
+* ⚡ **Streaming responses (real-time output like ChatGPT)**
+* 💬 **Simple HTML chat UI**
 * 📂 Multi-document support with metadata filtering
 * 📋 List uploaded documents
 * ❌ Delete specific documents
-* ⚡ FastAPI-based REST API
+* 🚀 FastAPI-based REST API
 
 ---
 
@@ -28,6 +30,7 @@ This project allows users to **upload PDF documents and ask questions**, with an
 * Google Gemini (Embeddings + LLM)
 * ChromaDB (Vector Database)
 * PyPDF (PDF parsing)
+* HTML + JavaScript (Chat UI)
 * python-dotenv
 
 ---
@@ -58,15 +61,29 @@ uvicorn app.main:app --reload
 
 ---
 
+## 🌐 Access UI
+
+Open in browser:
+
+```text
+http://localhost:8000
+```
+
+👉 Upload PDF → Ask questions → Get streaming answers
+
+---
+
 ## 🌐 API Endpoints
 
 ---
 
-### ✅ Health Check
+### ✅ Health Check / UI
 
 ```http
 GET /
 ```
+
+Serves the **chat dashboard UI**
 
 ---
 
@@ -75,8 +92,6 @@ GET /
 ```http
 POST /upload
 ```
-
-Upload a PDF file.
 
 #### Response
 
@@ -90,7 +105,7 @@ Upload a PDF file.
 
 ---
 
-### ❓ Ask Question (RAG)
+### ❓ Ask Question (Standard)
 
 ```http
 POST /ask
@@ -106,18 +121,15 @@ POST /ask
 }
 ```
 
-#### Response
+---
 
-```json
-{
-  "query": "What is Docker?",
-  "answer": "Docker is a containerization platform...",
-  "context": [
-    "Docker allows applications to run in containers...",
-    "Containers are lightweight and portable..."
-  ]
-}
+### ⚡ Ask Question (Streaming)
+
+```http
+POST /ask-stream
 ```
+
+👉 Returns **streaming response (chunk-by-chunk)**
 
 ---
 
@@ -125,17 +137,6 @@ POST /ask
 
 ```http
 GET /documents
-```
-
-#### Response
-
-```json
-{
-  "documents": [
-    "docker training.pdf",
-    "kubernetes guide.pdf"
-  ]
-}
 ```
 
 ---
@@ -146,14 +147,6 @@ GET /documents
 DELETE /documents?source=docker training.pdf
 ```
 
-#### Response
-
-```json
-{
-  "message": "docker training.pdf deleted"
-}
-```
-
 ---
 
 ## 🧠 How It Works
@@ -161,8 +154,17 @@ DELETE /documents?source=docker training.pdf
 ```text
 PDF → Text Extraction → Chunking → Embeddings (Gemini)
    → Store in Chroma → Query Embedding → Similarity Search
-   → Context Retrieval → Gemini → Final Answer
+   → Context Retrieval → Gemini (Streaming) → Answer
 ```
+
+---
+
+## 💬 Chat UI Features
+
+* Upload PDF directly from browser
+* Ask questions interactively
+* Real-time streaming answers
+* Simple and lightweight interface
 
 ---
 
@@ -171,18 +173,11 @@ PDF → Text Extraction → Chunking → Embeddings (Gemini)
 * **Embeddings** → Convert text into vectors
 * **Vector Search** → Find similar content
 * **RAG** → Combine retrieval + LLM generation
+* **Streaming** → Token-by-token response generation
 * **Metadata Filtering** → Query specific documents
 
 ---
 
-## 🔮 Future Improvements
-
-* Add streaming responses (real-time answers)
-* Add hybrid search (BM25 + embeddings)
-* Add user authentication (multi-tenant system)
-* Add document versioning
-* Add Redis caching for embeddings
-* Add UI (Streamlit / React)
 
 ---
 
@@ -191,3 +186,4 @@ PDF → Text Extraction → Chunking → Embeddings (Gemini)
 MIT License
 
 ---
+
