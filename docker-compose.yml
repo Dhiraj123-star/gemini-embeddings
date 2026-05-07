@@ -1,0 +1,11 @@
+services:
+  app:
+    build: .
+    container_name: gemini-rag-app
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    volumes:
+      - ./chroma_db:/app/chroma_db  # persist vector db
+    restart: unless-stopped
