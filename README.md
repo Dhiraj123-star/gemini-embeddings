@@ -1,44 +1,54 @@
 # 🚀 Gemini RAG API (FastAPI + Chroma + PDF QA + Streaming UI)
 
-A minimal yet **production-style RAG (Retrieval-Augmented Generation) system** using **Google Gemini Embeddings (`gemini-embedding-2-preview`)**, **ChromaDB**, and **FastAPI**.
+A minimal yet **production-style RAG (Retrieval-Augmented Generation) system** built using **Google Gemini Embeddings (`gemini-embedding-2`)**, **ChromaDB**, and **FastAPI**.
 
-This project allows users to **upload PDF documents and ask questions via a chat UI**, with **real-time streaming responses** generated using relevant context retrieved from stored embeddings.
+This project allows users to:
+
+* 📄 Upload PDF documents
+* 🔍 Perform semantic search
+* 🤖 Ask questions from uploaded documents
+* ⚡ Receive real-time streaming AI responses
+* 💬 Interact through a simple chat dashboard UI
 
 ---
 
 ## 📌 Features
 
 * 📄 Upload PDF documents and extract text
-* ✂️ Chunk documents for better semantic retrieval
+* ✂️ Chunk documents for semantic retrieval
 * 🧠 Generate embeddings using Gemini
-* 🗄️ Store embeddings in Chroma (persistent vector DB)
-* 🔍 Semantic search with **Top-K retrieval**
-* 🤖 Generate contextual answers using Gemini (RAG)
-* ⚡ **Streaming responses (real-time output like ChatGPT)**
-* 💬 **Simple HTML chat UI**
-* 📂 Multi-document support with metadata filtering
+* 🗄️ Store embeddings in ChromaDB
+* 🔍 Top-K semantic similarity search
+* 🤖 RAG-based contextual answer generation
+* ⚡ Real-time streaming responses
+* 💬 HTML + JavaScript chat dashboard
+* 📂 Multi-document support
+* 🏷️ Metadata filtering by document source
 * 📋 List uploaded documents
-* ❌ Delete specific documents
-* 🚀 FastAPI-based REST API
+* ❌ Delete uploaded documents
+* 🐳 Docker & Docker Compose support
+* 🚀 FastAPI REST API architecture
 
 ---
 
 ## 🛠️ Tech Stack
 
-* Python
+* Python 3.12
 * FastAPI
-* Google Gemini (Embeddings + LLM)
-* ChromaDB (Vector Database)
-* PyPDF (PDF parsing)
-* HTML + JavaScript (Chat UI)
-* python-dotenv
+* Google Gemini API
+* ChromaDB
+* PyPDF
+* HTML + JavaScript
+* Docker & Docker Compose
 
 ---
 
 ## 📦 Installation
 
+### Install dependencies
+
 ```bash
-pip install -U google-genai fastapi uvicorn chromadb pypdf python-dotenv
+pip install -U google-genai fastapi uvicorn chromadb pypdf python-dotenv numpy
 ```
 
 ---
@@ -53,23 +63,33 @@ GEMINI_API_KEY=your_api_key_here
 
 ---
 
-## ▶️ Run the API
+# ▶️ Run Locally
 
 ```bash
 uvicorn app.main:app --reload
 ```
 
----
-
-## 🌐 Access UI
-
-Open in browser:
+Open:
 
 ```text
 http://localhost:8000
 ```
 
-👉 Upload PDF → Ask questions → Get streaming answers
+---
+
+# 🐳 Run with Docker
+
+## Build & Run
+
+```bash
+docker-compose up --build
+```
+
+Open:
+
+```text
+http://localhost:8000
+```
 
 ---
 
@@ -77,13 +97,13 @@ http://localhost:8000
 
 ---
 
-### ✅ Health Check / UI
+### ✅ Health Check / Chat UI
 
 ```http
 GET /
 ```
 
-Serves the **chat dashboard UI**
+Serves the chat dashboard UI.
 
 ---
 
@@ -93,7 +113,7 @@ Serves the **chat dashboard UI**
 POST /upload
 ```
 
-#### Response
+#### Example Response
 
 ```json
 {
@@ -105,7 +125,7 @@ POST /upload
 
 ---
 
-### ❓ Ask Question (Standard)
+### ❓ Ask Question
 
 ```http
 POST /ask
@@ -121,19 +141,31 @@ POST /ask
 }
 ```
 
+#### Response
+
+```json
+{
+  "query": "What is Docker?",
+  "answer": "Docker is a containerization platform...",
+  "context": [
+    "Docker allows applications to run in containers..."
+  ]
+}
+```
+
 ---
 
-### ⚡ Ask Question (Streaming)
+### ⚡ Streaming Question Answering
 
 ```http
 POST /ask-stream
 ```
 
-👉 Returns **streaming response (chunk-by-chunk)**
+Returns real-time streaming responses.
 
 ---
 
-### 📂 List Documents
+### 📂 List Uploaded Documents
 
 ```http
 GET /documents
@@ -152,32 +184,64 @@ DELETE /documents?source=docker training.pdf
 ## 🧠 How It Works
 
 ```text
-PDF → Text Extraction → Chunking → Embeddings (Gemini)
-   → Store in Chroma → Query Embedding → Similarity Search
-   → Context Retrieval → Gemini (Streaming) → Answer
+PDF Upload
+   ↓
+Text Extraction
+   ↓
+Chunking
+   ↓
+Gemini Embeddings
+   ↓
+Store in ChromaDB
+   ↓
+Semantic Retrieval
+   ↓
+Gemini RAG Generation
+   ↓
+Streaming Answer
 ```
 
 ---
 
 ## 💬 Chat UI Features
 
-* Upload PDF directly from browser
+* Upload PDFs directly from browser
 * Ask questions interactively
-* Real-time streaming answers
-* Simple and lightweight interface
+* Receive streaming AI responses
+* Lightweight and simple dashboard
 
 ---
 
 ## 🔥 Key Concepts
 
 * **Embeddings** → Convert text into vectors
-* **Vector Search** → Find similar content
-* **RAG** → Combine retrieval + LLM generation
-* **Streaming** → Token-by-token response generation
+* **Vector Search** → Retrieve semantically similar chunks
+* **RAG** → Retrieval + AI generation
+* **Streaming** → Token-by-token AI response
 * **Metadata Filtering** → Query specific documents
 
 ---
 
+## 📁 Project Structure
+
+```text
+.
+├── app/
+│   ├── api/
+│   ├── core/
+│   ├── services/
+│   └── main.py
+│
+├── static/
+│   └── index.html
+│
+├── chroma_db/
+├── Dockerfile
+├── docker-compose.yml
+├── requirements.txt
+├── .dockerignore
+└── .env
+```
 
 ---
 
@@ -186,4 +250,3 @@ PDF → Text Extraction → Chunking → Embeddings (Gemini)
 MIT License
 
 ---
-
