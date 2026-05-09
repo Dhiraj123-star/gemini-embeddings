@@ -1,6 +1,6 @@
-# 🚀 Gemini RAG API (FastAPI + Chroma + PDF QA + Streaming UI)
+# 🚀 Gemini RAG API (FastAPI + ChromaDB + PDF QA + Streaming UI + NGINX)
 
-A minimal yet **production-style RAG (Retrieval-Augmented Generation) system** built using **Google Gemini Embeddings (`gemini-embedding-2`)**, **ChromaDB**, and **FastAPI**.
+A minimal yet **production-style RAG (Retrieval-Augmented Generation) system** built using **Google Gemini Embeddings (`gemini-embedding-2`)**, **ChromaDB**, **FastAPI**, and **NGINX**.
 
 This project allows users to:
 
@@ -9,16 +9,17 @@ This project allows users to:
 * 🤖 Ask questions from uploaded documents
 * ⚡ Receive real-time streaming AI responses
 * 💬 Interact through a simple chat dashboard UI
+* 🐳 Run the complete stack using Docker Compose
 
 ---
 
-## 📌 Features
+# 📌 Features
 
 * 📄 Upload PDF documents and extract text
 * ✂️ Chunk documents for semantic retrieval
 * 🧠 Generate embeddings using Gemini
 * 🗄️ Store embeddings in ChromaDB
-* 🔍 Top-K semantic similarity search
+* 🔍 Top-K semantic similarity retrieval
 * 🤖 RAG-based contextual answer generation
 * ⚡ Real-time streaming responses
 * 💬 HTML + JavaScript chat dashboard
@@ -26,12 +27,13 @@ This project allows users to:
 * 🏷️ Metadata filtering by document source
 * 📋 List uploaded documents
 * ❌ Delete uploaded documents
-* 🐳 Docker & Docker Compose support
-* 🚀 FastAPI REST API architecture
+* 🐳 Dockerized deployment
+* 🌐 NGINX reverse proxy support
+* 🚀 Modular FastAPI architecture
 
 ---
 
-## 🛠️ Tech Stack
+# 🛠️ Tech Stack
 
 * Python 3.12
 * FastAPI
@@ -40,12 +42,13 @@ This project allows users to:
 * PyPDF
 * HTML + JavaScript
 * Docker & Docker Compose
+* NGINX
 
 ---
 
-## 📦 Installation
+# 📦 Installation
 
-### Install dependencies
+## Install dependencies
 
 ```bash
 pip install -U google-genai fastapi uvicorn chromadb pypdf python-dotenv numpy
@@ -53,7 +56,7 @@ pip install -U google-genai fastapi uvicorn chromadb pypdf python-dotenv numpy
 
 ---
 
-## 🔐 Environment Setup
+# 🔐 Environment Setup
 
 Create a `.env` file:
 
@@ -77,7 +80,7 @@ http://localhost:8000
 
 ---
 
-# 🐳 Run with Docker
+# 🐳 Run with Docker + NGINX
 
 ## Build & Run
 
@@ -88,16 +91,18 @@ docker-compose up --build
 Open:
 
 ```text
-http://localhost:8000
+http://localhost
 ```
 
----
-
-## 🌐 API Endpoints
+NGINX acts as the reverse proxy and forwards requests to the FastAPI application.
 
 ---
 
-### ✅ Health Check / Chat UI
+# 🌐 API Endpoints
+
+---
+
+## ✅ Health Check / Chat UI
 
 ```http
 GET /
@@ -107,13 +112,13 @@ Serves the chat dashboard UI.
 
 ---
 
-### 📤 Upload PDF
+## 📤 Upload PDF
 
 ```http
 POST /upload
 ```
 
-#### Example Response
+### Example Response
 
 ```json
 {
@@ -125,13 +130,13 @@ POST /upload
 
 ---
 
-### ❓ Ask Question
+## ❓ Ask Question
 
 ```http
 POST /ask
 ```
 
-#### Request
+### Request
 
 ```json
 {
@@ -141,7 +146,7 @@ POST /ask
 }
 ```
 
-#### Response
+### Response
 
 ```json
 {
@@ -155,7 +160,7 @@ POST /ask
 
 ---
 
-### ⚡ Streaming Question Answering
+## ⚡ Streaming Question Answering
 
 ```http
 POST /ask-stream
@@ -165,7 +170,7 @@ Returns real-time streaming responses.
 
 ---
 
-### 📂 List Uploaded Documents
+## 📂 List Uploaded Documents
 
 ```http
 GET /documents
@@ -173,7 +178,7 @@ GET /documents
 
 ---
 
-### ❌ Delete Document
+## ❌ Delete Document
 
 ```http
 DELETE /documents?source=docker training.pdf
@@ -181,7 +186,7 @@ DELETE /documents?source=docker training.pdf
 
 ---
 
-## 🧠 How It Works
+# 🧠 How It Works
 
 ```text
 PDF Upload
@@ -203,26 +208,26 @@ Streaming Answer
 
 ---
 
-## 💬 Chat UI Features
+# 💬 Chat UI Features
 
 * Upload PDFs directly from browser
 * Ask questions interactively
 * Receive streaming AI responses
-* Lightweight and simple dashboard
+* Lightweight and responsive dashboard
 
 ---
 
-## 🔥 Key Concepts
+# 🔥 Key Concepts
 
 * **Embeddings** → Convert text into vectors
 * **Vector Search** → Retrieve semantically similar chunks
 * **RAG** → Retrieval + AI generation
-* **Streaming** → Token-by-token AI response
+* **Streaming** → Token-by-token AI response generation
 * **Metadata Filtering** → Query specific documents
 
 ---
 
-## 📁 Project Structure
+# 📁 Project Structure
 
 ```text
 .
@@ -231,6 +236,9 @@ Streaming Answer
 │   ├── core/
 │   ├── services/
 │   └── main.py
+│
+├── nginx/
+│   └── default.conf
 │
 ├── static/
 │   └── index.html
@@ -245,8 +253,15 @@ Streaming Answer
 
 ---
 
-## 📜 License
+# 🚀 Future Improvements
+
+* Add HTTPS with Let's Encrypt
+
+---
+
+# 📜 License
 
 MIT License
 
 ---
+
