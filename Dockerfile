@@ -1,16 +1,26 @@
-# Use Python 3.12 slim image
-FROM python:3.12-slim
+# ============================
+# Stage 1 Builder
+# ============================
+FROM python:3.12-slim AS builder
 
-# Set working directory
 WORKDIR /app
 
-# Copy requirements first (for caching)
+# Install dependencies
 COPY requirements.txt . 
 
-# Install dependencies
-RUN pip install --no-cache-dir -r requirements.txt 
+RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
 
-# Copy project files
+# =============================
+# Stage 2 - Final Image
+# =============================
+FROM python:3.12-slim
+
+WORKDIR /app
+
+# Copy installed packages from builder
+COPY --from=builder /install /usr/local
+
+# Copy application code
 COPY . .
 
 # Expose FastAPI port
