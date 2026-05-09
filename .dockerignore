@@ -58,3 +58,9 @@ chroma_db/
 tests/
 *.tmp
 *.swp
+
+# ------------------
+# SSL Certificates
+# ------------------
+*.crt
+*.key
