@@ -1,6 +1,6 @@
-# 🚀 Gemini RAG API (FastAPI + ChromaDB + PDF QA + Streaming UI + NGINX)
+# 🚀 Gemini RAG API (FastAPI + ChromaDB + PDF QA + Streaming UI + NGINX + HTTPS)
 
-A minimal yet **production-style RAG (Retrieval-Augmented Generation) system** built using **Google Gemini Embeddings (`gemini-embedding-2`)**, **ChromaDB**, **FastAPI**, and **NGINX**.
+A minimal yet **production-style RAG (Retrieval-Augmented Generation) system** built using **Google Gemini Embeddings (`gemini-embedding-2`)**, **ChromaDB**, **FastAPI**, **NGINX**, and **HTTPS**.
 
 This project allows users to:
 
@@ -9,6 +9,7 @@ This project allows users to:
 * 🤖 Ask questions from uploaded documents
 * ⚡ Receive real-time streaming AI responses
 * 💬 Interact through a simple chat dashboard UI
+* 🔐 Access the application securely over HTTPS
 * 🐳 Run the complete stack using Docker Compose
 
 ---
@@ -29,6 +30,7 @@ This project allows users to:
 * ❌ Delete uploaded documents
 * 🐳 Dockerized deployment
 * 🌐 NGINX reverse proxy support
+* 🔐 HTTPS with self-signed SSL certificates
 * 🚀 Modular FastAPI architecture
 
 ---
@@ -43,6 +45,7 @@ This project allows users to:
 * HTML + JavaScript
 * Docker & Docker Compose
 * NGINX
+* OpenSSL
 
 ---
 
@@ -80,7 +83,34 @@ http://localhost:8000
 
 ---
 
-# 🐳 Run with Docker + NGINX
+# 🔐 Generate Local SSL Certificates
+
+Create SSL folder:
+
+```bash
+mkdir ssl
+```
+
+Generate self-signed certificates:
+
+```bash
+openssl req -x509 -nodes -days 365 \
+-newkey rsa:2048 \
+-keyout ssl/nginx.key \
+-out ssl/nginx.crt
+```
+
+Generated files:
+
+```text
+ssl/
+├── nginx.crt
+└── nginx.key
+```
+
+---
+
+# 🐳 Run with Docker + NGINX + HTTPS
 
 ## Build & Run
 
@@ -91,10 +121,10 @@ docker-compose up --build
 Open:
 
 ```text
-http://localhost
+https://localhost
 ```
 
-NGINX acts as the reverse proxy and forwards requests to the FastAPI application.
+NGINX acts as the reverse proxy and forwards requests securely to the FastAPI application.
 
 ---
 
@@ -224,6 +254,7 @@ Streaming Answer
 * **RAG** → Retrieval + AI generation
 * **Streaming** → Token-by-token AI response generation
 * **Metadata Filtering** → Query specific documents
+* **HTTPS** → Secure encrypted communication
 
 ---
 
@@ -240,6 +271,10 @@ Streaming Answer
 ├── nginx/
 │   └── default.conf
 │
+├── ssl/
+│   ├── nginx.crt
+│   └── nginx.key
+│
 ├── static/
 │   └── index.html
 │
@@ -248,14 +283,9 @@ Streaming Answer
 ├── docker-compose.yml
 ├── requirements.txt
 ├── .dockerignore
+├── .gitignore
 └── .env
 ```
-
----
-
-# 🚀 Future Improvements
-
-* Add HTTPS with Let's Encrypt
 
 ---
 
@@ -264,4 +294,3 @@ Streaming Answer
 MIT License
 
 ---
-
