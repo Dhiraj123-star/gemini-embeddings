@@ -25,7 +25,7 @@ jobs:
       
       - name: Build Docker Image
         run: |
-          docker build -t dhiraj918106/gemini-rag-api:latest
+          docker build -t dhiraj918106/gemini-rag-api:latest .
 
       - name: Push Docker Image
         run: |
