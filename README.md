@@ -1,6 +1,6 @@
-# 🚀 Gemini RAG API (FastAPI + ChromaDB + PDF QA + Streaming UI + NGINX + HTTPS)
+# 🚀 Gemini RAG API (FastAPI + ChromaDB + PDF QA + Streaming UI + NGINX + HTTPS + CI/CD)
 
-A minimal yet **production-style RAG (Retrieval-Augmented Generation) system** built using **Google Gemini Embeddings (`gemini-embedding-2`)**, **ChromaDB**, **FastAPI**, **NGINX**, and **HTTPS**.
+A minimal yet **production-style RAG (Retrieval-Augmented Generation) system** built using **Google Gemini Embeddings (`gemini-embedding-2`)**, **ChromaDB**, **FastAPI**, **NGINX**, **Docker**, and **GitHub Actions CI/CD**.
 
 This project allows users to:
 
@@ -11,6 +11,7 @@ This project allows users to:
 * 💬 Interact through a simple chat dashboard UI
 * 🔐 Access the application securely over HTTPS
 * 🐳 Run the complete stack using Docker Compose
+* 🚀 Automatically build & push Docker images using GitHub Actions
 
 ---
 
@@ -31,6 +32,7 @@ This project allows users to:
 * 🐳 Dockerized deployment
 * 🌐 NGINX reverse proxy support
 * 🔐 HTTPS with self-signed SSL certificates
+* ⚙️ GitHub Actions CI/CD pipeline
 * 🚀 Modular FastAPI architecture
 
 ---
@@ -46,6 +48,7 @@ This project allows users to:
 * Docker & Docker Compose
 * NGINX
 * OpenSSL
+* GitHub Actions
 
 ---
 
@@ -53,7 +56,7 @@ This project allows users to:
 
 ## Install dependencies
 
-```bash
+```bash id="b1osux"
 pip install -U google-genai fastapi uvicorn chromadb pypdf python-dotenv numpy
 ```
 
@@ -63,7 +66,7 @@ pip install -U google-genai fastapi uvicorn chromadb pypdf python-dotenv numpy
 
 Create a `.env` file:
 
-```env
+```env id="s4ec1l"
 GEMINI_API_KEY=your_api_key_here
 ```
 
@@ -71,13 +74,13 @@ GEMINI_API_KEY=your_api_key_here
 
 # ▶️ Run Locally
 
-```bash
+```bash id="5v96qv"
 uvicorn app.main:app --reload
 ```
 
 Open:
 
-```text
+```text id="u7kkdw"
 http://localhost:8000
 ```
 
@@ -87,13 +90,13 @@ http://localhost:8000
 
 Create SSL folder:
 
-```bash
+```bash id="c8h8qj"
 mkdir ssl
 ```
 
 Generate self-signed certificates:
 
-```bash
+```bash id="jv8zci"
 openssl req -x509 -nodes -days 365 \
 -newkey rsa:2048 \
 -keyout ssl/nginx.key \
@@ -102,7 +105,7 @@ openssl req -x509 -nodes -days 365 \
 
 Generated files:
 
-```text
+```text id="w8fd71"
 ssl/
 ├── nginx.crt
 └── nginx.key
@@ -114,17 +117,45 @@ ssl/
 
 ## Build & Run
 
-```bash
+```bash id="8ysx5d"
 docker-compose up --build
 ```
 
 Open:
 
-```text
+```text id="y36rj0"
 https://localhost
 ```
 
 NGINX acts as the reverse proxy and forwards requests securely to the FastAPI application.
+
+---
+
+# ⚙️ GitHub Actions CI/CD
+
+This project includes a simple GitHub Actions workflow that:
+
+* Builds the Docker image
+* Pushes the image to DockerHub automatically on every push to `main`
+
+---
+
+## GitHub Secrets
+
+Add the following repository secrets:
+
+```text id="jlwm9w"
+DOCKER_USERNAME
+DOCKER_PASSWORD
+```
+
+---
+
+## DockerHub Image
+
+```text id="mq5l9u"
+dhiraj918106/gemini-rag-api:latest
+```
 
 ---
 
@@ -134,7 +165,7 @@ NGINX acts as the reverse proxy and forwards requests securely to the FastAPI ap
 
 ## ✅ Health Check / Chat UI
 
-```http
+```http id="j66tfy"
 GET /
 ```
 
@@ -144,13 +175,13 @@ Serves the chat dashboard UI.
 
 ## 📤 Upload PDF
 
-```http
+```http id="4r21fr"
 POST /upload
 ```
 
 ### Example Response
 
-```json
+```json id="3cb6u4"
 {
   "message": "PDF processed successfully",
   "file": "docker training.pdf",
@@ -162,13 +193,13 @@ POST /upload
 
 ## ❓ Ask Question
 
-```http
+```http id="0yowk7"
 POST /ask
 ```
 
 ### Request
 
-```json
+```json id="d6y2ti"
 {
   "query": "What is Docker?",
   "top_k": 3,
@@ -178,7 +209,7 @@ POST /ask
 
 ### Response
 
-```json
+```json id="0b6m9j"
 {
   "query": "What is Docker?",
   "answer": "Docker is a containerization platform...",
@@ -192,7 +223,7 @@ POST /ask
 
 ## ⚡ Streaming Question Answering
 
-```http
+```http id="bt8r7g"
 POST /ask-stream
 ```
 
@@ -202,7 +233,7 @@ Returns real-time streaming responses.
 
 ## 📂 List Uploaded Documents
 
-```http
+```http id="x0e9k5"
 GET /documents
 ```
 
@@ -210,7 +241,7 @@ GET /documents
 
 ## ❌ Delete Document
 
-```http
+```http id="duv9vz"
 DELETE /documents?source=docker training.pdf
 ```
 
@@ -218,7 +249,7 @@ DELETE /documents?source=docker training.pdf
 
 # 🧠 How It Works
 
-```text
+```text id="fkwwch"
 PDF Upload
    ↓
 Text Extraction
@@ -255,13 +286,18 @@ Streaming Answer
 * **Streaming** → Token-by-token AI response generation
 * **Metadata Filtering** → Query specific documents
 * **HTTPS** → Secure encrypted communication
+* **CI/CD** → Automated Docker image deployment
 
 ---
 
 # 📁 Project Structure
 
-```text
+```text id="w9q7vs"
 .
+├── .github/
+│   └── workflows/
+│       └── docker.yml
+│
 ├── app/
 │   ├── api/
 │   ├── core/
